@@ -1,0 +1,36 @@
+name: Release
+
+on:
+    workflow_dispatch:
+    push:
+        branches: [main]
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Deno
+              uses: denoland/setup-deno@v1
+              with:
+                deno-version: v1.28.x
+            - name: get version
+              id: version
+              uses: notiz-dev/github-action-json-property@release
+              with:
+                  path: "plugin.json"
+                  prop_path: "Version"
+            - run: echo ${{steps.version.outputs.prop}}
+            - name: Build
+              run: |
+                  deno task build
+            - name: Pack
+              run: zip -r DenoSearch-${{steps.version.outputs.prop}}.zip . -x '*.git*'
+            - name: Publish
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: "DenoSearch-${{steps.version.outputs.prop}}.zip"
+                  tag_name: "v${{steps.version.outputs.prop}}"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

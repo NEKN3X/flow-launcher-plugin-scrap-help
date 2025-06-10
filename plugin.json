@@ -1,0 +1,12 @@
+{
+  "ID": "c22c51b8-245a-4b77-ade5-b69507d702a3",
+  "ActionKeyword": "dd",
+  "Name": "Search Deno",
+  "Description": "Search Deno documentation",
+  "Author": "Joël Kuijper",
+  "Version": "0.0.1",
+  "Language": "executable",
+  "ExecuteFileName": "./dist/plugin.exe",
+  "Website": "https://github.com/Joehoel/flow-launcher-plugin-template-deno",
+  "IcoPath": "./assets/deno.png"
+}
