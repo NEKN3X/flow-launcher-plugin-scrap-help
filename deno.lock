@@ -1,5 +1,13 @@
 {
   "version": "5",
+  "specifiers": {
+    "npm:fzf@~0.5.2": "0.5.2"
+  },
+  "npm": {
+    "fzf@0.5.2": {
+      "integrity": "sha512-Tt4kuxLXFKHy8KT40zwsUPUkg1CrsgY25FxA2U/j/0WgEDCk3ddc/zLTCCcbSHX9FcKtLuVaDGtGE/STWC+j3Q=="
+    }
+  },
   "redirects": {
     "https://deno.land/x/is_docker/mod.ts": "https://deno.land/x/is_docker@v2.0.0/mod.ts",
     "https://deno.land/x/open/index.ts": "https://deno.land/x/open@v1.0.0/index.ts",
@@ -164,5 +172,10 @@
     "https://deno.land/x/is_wsl@v1.1.0/mod.ts": "30996b09376652df7a4d495320e918154906ab94325745c1399e13e658dca5da",
     "https://deno.land/x/open@v1.0.0/index.ts": "bb328bed0d9660ccc747fb7e8fc8f85b9c0102b09a56aceb486321837d33af23",
     "https://deno.land/x/process@v0.3.0/mod.ts": "2906e33c2a9a36ecfc174d78f899a23a913b6d6044145ee86b38357da64feeae"
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:fzf@~0.5.2"
+    ]
   }
 }

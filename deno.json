@@ -1,5 +1,8 @@
 {
   "tasks": {
     "build": "deno compile -A --output ./dist/plugin --target x86_64-pc-windows-msvc ./src/index.ts"
+  },
+  "imports": {
+    "fzf": "npm:fzf@^0.5.2"
   }
 }
