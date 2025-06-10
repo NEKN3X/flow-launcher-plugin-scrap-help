@@ -1,4 +1,6 @@
-# Flow Launcher Plugin Template for Deno
+# Flow Launcher Plugin for Scrapbox
+
+![Image from Gyazo](https://i.gyazo.com/87502bd4b06c16d6b96ec708912cbb6b.gif)
 
 This repository contains a template for creating a [Flow Launcher](https://www.flowlauncher.com/) plugin using the [Deno](https://deno.land/) runtime.
 
