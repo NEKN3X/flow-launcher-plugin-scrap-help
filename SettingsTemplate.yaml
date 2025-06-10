@@ -1,0 +1,17 @@
+# $schema: https://www.flowlauncher.com/schemas/settings-template.schema.json
+body:
+  - type: input
+    attributes:
+      name: sid
+      label: "connect.sid"
+      defaultValue: ""
+  - type: input
+    attributes:
+      name: projects
+      label: "projects"
+      defaultValue: ""
+  - type: input
+    attributes:
+      name: glossary
+      label: "glossary"
+      defaultValue: ""

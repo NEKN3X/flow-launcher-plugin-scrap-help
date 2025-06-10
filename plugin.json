@@ -1,12 +1,12 @@
 {
-  "ID": "c22c51b8-245a-4b77-ade5-b69507d702a3",
-  "ActionKeyword": "dd",
-  "Name": "Search Deno",
-  "Description": "Search Deno documentation",
-  "Author": "Joël Kuijper",
+  "ID": "117p9z9t-0m0b-wz07-g23x-52ku6p90vxzz",
+  "ActionKeyword": "*",
+  "Name": "ScrapHelp",
+  "Description": "Search Scrapbox & Web Help",
+  "Author": "NEKN3X",
   "Version": "0.0.1",
   "Language": "executable",
   "ExecuteFileName": "./dist/plugin.exe",
-  "Website": "https://github.com/Joehoel/flow-launcher-plugin-template-deno",
-  "IcoPath": "./assets/deno.png"
+  "Website": "https://github.com/NEKN3X/flow-launcher-plugin-scrap-help",
+  "IcoPath": "./assets/image.png"
 }

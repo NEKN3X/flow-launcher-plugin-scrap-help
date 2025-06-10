@@ -23,6 +23,7 @@ type MethodsObj<T> = {
   [key in Methods<T> extends string
     ? Methods<T>
     : // eslint-disable-next-line @typescript-eslint/ban-types
+      // deno-lint-ignore ban-types
       JSONRPCMethods | (string & {})]: () => void;
 };
 
@@ -93,7 +94,10 @@ export class Flow<TMethods, TSettings = Record<string, string>>
    * @param {keyof MethodsObj<TMethods>} method
    * @param {() => void} callbackFn
    */
-  public on(method: keyof MethodsObj<TMethods>, callbackFn: (params: Parameters) => void) {
+  public on(
+    method: keyof MethodsObj<TMethods>,
+    callbackFn: (params: Parameters) => void
+  ) {
     this.methods[method] = callbackFn.bind(this, this.data.parameters);
   }
 
@@ -104,7 +108,7 @@ export class Flow<TMethods, TSettings = Record<string, string>>
    * @param {...JSONRPCResponse<TMethods>[]} resultsArray Array with all the results objects.
    */
   public showResult(...resultsArray: JSONRPCResponse<TMethods>[]) {
-    const result = resultsArray.map(r => {
+    const result = resultsArray.map((r) => {
       return {
         Title: r.title,
         Subtitle: r.subtitle,
