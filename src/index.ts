@@ -1,5 +1,9 @@
 import { api } from "./api.ts";
-import { getPageCacheClient, getTitlesCacheClient } from "./cache.ts";
+import {
+  getPageCacheClient,
+  getTempCacheClient,
+  getTitlesCacheClient,
+} from "./cache.ts";
 import { Flow } from "./flow-launcher-helper.ts";
 import { openUrl } from "./open.ts";
 import { makeResult } from "./result.ts";
@@ -15,32 +19,43 @@ const flow = new Flow<Events, Settings>("assets/image.png");
 flow.on("query", async (params) => {
   const projects = flow.settings.projects.trim().split(",");
 
-  projects.forEach(async (project) => {
-    const titlesCacheClient = getTitlesCacheClient(project);
-    const titlesCache = (await titlesCacheClient.read()) || [];
-    const titles = await api.getTitles(project, flow.settings.sid);
-    const titlesCacheMap = new Map(
-      titlesCache.map((title) => [title.id, title.updated])
-    );
-    titles
-      .filter((title) => {
-        const updated = titlesCacheMap.get(title.id);
-        return !updated || updated < title.updated;
-      })
-      .forEach(async (title) => {
-        const page = await api.getPage(project, title.title, flow.settings.sid);
-        const client = getPageCacheClient(project, title.id);
-        client.write(page);
-      });
-    titlesCacheMap.keys().forEach((id) => {
-      if (!titles.some((title) => title.id === id)) {
-        const client = getPageCacheClient(project, id);
-        client.delete();
-      }
-    });
+  const timeoutCache = getTempCacheClient();
+  const lastUpdate = (await timeoutCache.read())?.lastUpdate || 0;
+  const now = Date.now();
+  if (now > lastUpdate + flow.settings.timeout) {
+    await timeoutCache.write({ lastUpdate: now });
 
-    titlesCacheClient.write(titles);
-  });
+    projects.forEach(async (project) => {
+      const titlesCacheClient = getTitlesCacheClient(project);
+      const titlesCache = (await titlesCacheClient.read()) || [];
+      const titles = await api.getTitles(project, flow.settings.sid);
+      const titlesCacheMap = new Map(
+        titlesCache.map((title) => [title.id, title.updated])
+      );
+      titles
+        .filter((title) => {
+          const updated = titlesCacheMap.get(title.id);
+          return !updated || updated < title.updated;
+        })
+        .forEach(async (title) => {
+          const page = await api.getPage(
+            project,
+            title.title,
+            flow.settings.sid
+          );
+          const client = getPageCacheClient(project, title.id);
+          client.write(page);
+        });
+      titlesCacheMap.keys().forEach((id) => {
+        if (!titles.some((title) => title.id === id)) {
+          const client = getPageCacheClient(project, id);
+          client.delete();
+        }
+      });
+
+      titlesCacheClient.write(titles);
+    });
+  }
 
   const glossaryProject = flow.settings.glossary;
   const pages = (await getTitlesCacheClient(glossaryProject).read()).find(

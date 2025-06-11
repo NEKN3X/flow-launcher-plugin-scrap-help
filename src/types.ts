@@ -2,6 +2,7 @@ export type Settings = {
   sid: string;
   projects: string;
   glossary: string;
+  timeout: number;
 };
 
 export type ScrapboxTitle = {

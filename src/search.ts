@@ -30,12 +30,7 @@ export function search(
   return result
     .map((x) => x.item)
     .reduce((acc, item) => {
-      if (
-        acc.some(
-          (x) =>
-            x.subtitle === item.subtitle && x.params![0] === item.params![0]
-        )
-      ) {
+      if (acc.some((x) => x.params![0] === item.params![0])) {
         return acc;
       }
       return [...acc, item];

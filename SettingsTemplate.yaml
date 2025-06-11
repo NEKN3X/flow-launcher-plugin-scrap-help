@@ -15,3 +15,8 @@ body:
       name: glossary
       label: "glossary"
       defaultValue: ""
+  - type: input
+    attributes:
+      name: timeout
+      label: "timeout"
+      defaultValue: ""

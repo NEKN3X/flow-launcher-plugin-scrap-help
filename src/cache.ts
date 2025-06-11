@@ -1,6 +1,6 @@
 import { ScrapboxPage, ScrapboxTitle } from "./types.ts";
 
-const dbRoot = "./Cache/ScrapHelp/projects/";
+const dbRoot = "./Cache/ScrapHelp/";
 
 class CacheClient<T> {
   private dir: string;
@@ -12,8 +12,17 @@ class CacheClient<T> {
   }
 
   async read(): Promise<T> {
+    try {
+      await Deno.stat(dbRoot + this.dir + this.file + ".json");
+    } catch (_) {
+      await Deno.writeTextFile(
+        dbRoot + this.dir + this.file + ".json",
+        JSON.stringify({}, null, 2)
+      );
+      return {} as T;
+    }
     const data = await Deno.readTextFile(
-      dbRoot + this.dir + "/" + this.file + ".json"
+      dbRoot + this.dir + this.file + ".json"
     );
     return JSON.parse(data);
   }
@@ -26,7 +35,7 @@ class CacheClient<T> {
     }
     try {
       await Deno.writeTextFile(
-        dbRoot + this.dir + "/" + this.file + ".json",
+        dbRoot + this.dir + this.file + ".json",
         JSON.stringify(data, null, 2)
       );
     } catch (_) {
@@ -38,7 +47,7 @@ class CacheClient<T> {
 
   async delete(): Promise<void> {
     try {
-      await Deno.remove(dbRoot + this.dir + "/" + this.file + ".json");
+      await Deno.remove(dbRoot + this.dir + this.file + ".json");
     } catch (_) {
       throw new Error(
         `Failed to delete cache file: ${dbRoot}${this.dir}/${this.file}.json`
@@ -50,11 +59,15 @@ class CacheClient<T> {
 export function getTitlesCacheClient(
   project: string
 ): CacheClient<ScrapboxTitle[]> {
-  return new CacheClient<ScrapboxTitle[]>(project, "titles");
+  return new CacheClient<ScrapboxTitle[]>(`projects/${project}/`, "titles");
 }
 export function getPageCacheClient(
   project: string,
   page: string
 ): CacheClient<ScrapboxPage> {
-  return new CacheClient<ScrapboxPage>(`${project}/pages`, page);
+  return new CacheClient<ScrapboxPage>(`projects/${project}/pages/`, page);
+}
+
+export function getTempCacheClient(): CacheClient<{ lastUpdate: number }> {
+  return new CacheClient<{ lastUpdate: number }>("", "temp");
 }
