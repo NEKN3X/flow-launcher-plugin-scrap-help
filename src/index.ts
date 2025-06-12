@@ -70,6 +70,7 @@ flow.on("query", async (params) => {
                 : encodeURIComponent(params[0].toString())
             }`,
           ],
+          score: -100,
         },
         {
           title: "UPDATE",
@@ -77,6 +78,7 @@ flow.on("query", async (params) => {
           iconPath: "assets/cosense.png",
           method: "update",
           params: [flow.settings],
+          score: -100,
         },
       ])
     );
