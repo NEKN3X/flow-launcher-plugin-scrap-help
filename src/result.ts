@@ -20,44 +20,50 @@ type CopyFileHelp = {
 type Help = OpenUrlHelp | CopyTextHelp | CopyFileHelp;
 
 function extractHelp(url: string, lines: string[]): Help[] {
-  const helpRegex = /^% (open|copy|file)\s+(.+)$/;
+  const openRegex = /^%\s+(https?:\/\/[^\s]+)$/;
+  const fileRegex = /^%\s+([^\s]+)$/;
+  const codeRegex = /\$\s+(.+)$/;
   return lines
     .map((x, i) => ({
-      text: x,
-      next: i + 1 < lines.length ? lines[i + 1] : undefined,
+      text: x.trim(),
+      next: i + 1 < lines.length ? lines[i + 1].trim() : undefined,
     }))
     .filter((x) => /^\?\s/.test(x.text))
     .map((x) => {
-      const match = helpRegex.exec(x.next || "");
+      const openMatch = openRegex.exec(x.next || "");
+      const fileMatch = fileRegex.exec(x.next || "");
+      const codeMatch = codeRegex.exec(x.next || "");
       const helpfeel = x.text.replace(/^\?\s+/, "");
-      if (!match)
-        return {
-          type: "scrapbox",
-          helpfeel,
-          url,
-        };
 
-      const [, type] = match;
-      switch (type) {
-        case "copy":
-          return {
-            type: "copy",
-            helpfeel,
-            text: match[2],
-          };
-        case "file":
-          return {
-            type: "file",
-            helpfeel,
-            file: match[2],
-          };
-        default:
-          return {
-            type: "open",
-            helpfeel,
-            url: match[2],
-          };
+      if (codeMatch) {
+        return {
+          type: "copy",
+          helpfeel,
+          text: codeMatch[1],
+        };
       }
+
+      if (openMatch) {
+        return {
+          type: "open",
+          helpfeel,
+          url: openMatch[2],
+        };
+      }
+
+      if (fileMatch) {
+        return {
+          type: "file",
+          helpfeel,
+          file: fileMatch[1],
+        };
+      }
+
+      return {
+        type: "scrapbox",
+        helpfeel,
+        url,
+      };
     });
 }
 
