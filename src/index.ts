@@ -51,15 +51,7 @@ flow.on("query", async (params) => {
         results
           .flat()
           .flat()
-          .concat([
-            {
-              title: "UPDATE",
-              subtitle: "Click to update cache",
-              iconPath: "assets/cosense.png",
-              method: "update",
-              params: [flow.settings],
-            },
-          ] as FlowResponse[]),
+          .concat([] as FlowResponse[]),
         params[0].toString()
       ).concat([
         {
@@ -78,6 +70,13 @@ flow.on("query", async (params) => {
                 : encodeURIComponent(params[0].toString())
             }`,
           ],
+        },
+        {
+          title: "UPDATE",
+          subtitle: "Click to update cache",
+          iconPath: "assets/cosense.png",
+          method: "update",
+          params: [flow.settings],
         },
       ])
     );
