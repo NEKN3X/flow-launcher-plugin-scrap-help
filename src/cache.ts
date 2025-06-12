@@ -68,6 +68,9 @@ export function getPageCacheClient(
   return new CacheClient<ScrapboxPage>(`projects/${project}/pages/`, page);
 }
 
-export function getTempCacheClient(): CacheClient<{ lastUpdate: number }> {
-  return new CacheClient<{ lastUpdate: number }>("", "temp");
+type TempCacheData = {
+  lastUpdate: number;
+};
+export function getTempCacheClient(): CacheClient<TempCacheData> {
+  return new CacheClient<TempCacheData>("", "temp");
 }

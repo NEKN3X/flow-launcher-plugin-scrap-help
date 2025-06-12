@@ -2,7 +2,7 @@ import { ScrapboxPage, ScrapboxTitle } from "./types.ts";
 
 const baseUrl = "https://scrapbox.io/api";
 
-const fetchScrapbox = <T>(url: string, sid?: string) =>
+const fetchScrapbox = (url: string, sid?: string) =>
   fetch(url, {
     headers: {
       Cookie: sid ? `connect.sid=${sid}` : "",
@@ -13,18 +13,22 @@ const fetchScrapbox = <T>(url: string, sid?: string) =>
         `Failed to fetch ${url}: ${res.status} ${res.statusText}`
       );
     }
-    return res.json() as Promise<T>;
+    return res;
   });
 
 export const api = {
   getTitles: (project: string, sid?: string) =>
-    fetchScrapbox<ScrapboxTitle[]>(
-      `${baseUrl}/pages/${project}/search/titles`,
-      sid
+    fetchScrapbox(`${baseUrl}/pages/${project}/search/titles`, sid).then(
+      (res) => res.json() as Promise<ScrapboxTitle[]>
     ),
   getPage: (project: string, page: string, sid?: string) =>
-    fetchScrapbox<ScrapboxPage>(
+    fetchScrapbox(
       `${baseUrl}/pages/${project}/${encodeURIComponent(page)}`,
       sid
-    ),
+    ).then((res) => res.json() as Promise<ScrapboxPage>),
+  getFile: (project: string, page: string, file: string, sid?: string) =>
+    fetchScrapbox(
+      `${baseUrl}/code/${project}/${page}/${encodeURIComponent(file)}`,
+      sid
+    ).then((res) => res.text()),
 };

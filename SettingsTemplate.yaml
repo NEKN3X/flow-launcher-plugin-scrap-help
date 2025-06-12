@@ -19,4 +19,4 @@ body:
     attributes:
       name: timeout
       label: "timeout"
-      defaultValue: ""
+      defaultValue: 0

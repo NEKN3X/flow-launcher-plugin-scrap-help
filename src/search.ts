@@ -1,10 +1,7 @@
 import { Fzf, byLengthAsc } from "fzf";
-import { JSONRPCResponse } from "./flow-launcher-helper.ts";
+import { FlowResponse } from "./index.ts";
 
-export function search(
-  data: JSONRPCResponse<"open">[],
-  query: string
-): JSONRPCResponse<"open">[] {
+export function search(data: FlowResponse[], query: string): FlowResponse[] {
   const segmenter = new Intl.Segmenter(["ja-JP", `en-US`], {
     granularity: "word",
   });
@@ -34,5 +31,5 @@ export function search(
         return acc;
       }
       return [...acc, item];
-    }, [] as JSONRPCResponse<"open">[]);
+    }, [] as FlowResponse[]);
 }

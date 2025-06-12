@@ -1,19 +1,21 @@
+import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
+import { Flow, JSONRPCResponse } from "npm:flow-launcher-helper";
 import { api } from "./api.ts";
 import {
   getPageCacheClient,
   getTempCacheClient,
   getTitlesCacheClient,
 } from "./cache.ts";
-import { Flow } from "./flow-launcher-helper.ts";
 import { openUrl } from "./open.ts";
 import { makeResult } from "./result.ts";
 import { search } from "./search.ts";
 import { Settings } from "./types.ts";
 
 // The events are the custom events that you define in the flow.on() method.
-const events = ["open"] as const;
+const events = ["open", "copy", "file"] as const;
 type Events = (typeof events)[number];
 
+export type FlowResponse = JSONRPCResponse<Events>;
 const flow = new Flow<Events, Settings>("assets/image.png");
 
 flow.on("query", async (params) => {
@@ -22,8 +24,8 @@ flow.on("query", async (params) => {
   const timeoutCache = getTempCacheClient();
   const lastUpdate = (await timeoutCache.read())?.lastUpdate || 0;
   const now = Date.now();
-  if (now > lastUpdate + flow.settings.timeout) {
-    await timeoutCache.write({ lastUpdate: now });
+  if (now > lastUpdate + Number(flow.settings.timeout)) {
+    await timeoutCache.write({ lastUpdate });
 
     projects.forEach(async (project) => {
       const titlesCacheClient = getTitlesCacheClient(project);
@@ -81,7 +83,7 @@ flow.on("query", async (params) => {
           const client = getPageCacheClient(project, title.id);
           const data = await client.read();
           if (!data) return [];
-          return makeResult(project, data, glossary);
+          return makeResult(project, data, glossary, flow.settings);
         })
       );
     })
@@ -92,6 +94,20 @@ flow.on("query", async (params) => {
 
 flow.on("open", async (params) => {
   await openUrl(params[0].toString());
+});
+
+flow.on("copy", async (params) => {
+  await clippy.writeText(params[0].toString());
+});
+
+flow.on("file", async (params) => {
+  const file = await api.getFile(
+    params[0].toString(),
+    params[1].toString(),
+    params[2].toString(),
+    params[3].toString()
+  );
+  await clippy.writeText(file);
 });
 
 flow.run();

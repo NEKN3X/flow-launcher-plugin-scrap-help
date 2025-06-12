@@ -1,9 +1,13 @@
 {
   "version": "5",
   "specifiers": {
+    "npm:flow-launcher-helper@^2.2.0": "2.2.0",
     "npm:fzf@~0.5.2": "0.5.2"
   },
   "npm": {
+    "flow-launcher-helper@2.2.0": {
+      "integrity": "sha512-UwbIwB243KQFItMZeJM8Z7anfepFeUe3EfD/3U8/WixDpVEOHozNw5TRhd8Mbswtzv8/F2l3P/8NH+5XUQXc4w=="
+    },
     "fzf@0.5.2": {
       "integrity": "sha512-Tt4kuxLXFKHy8KT40zwsUPUkg1CrsgY25FxA2U/j/0WgEDCk3ddc/zLTCCcbSHX9FcKtLuVaDGtGE/STWC+j3Q=="
     }
@@ -175,6 +179,7 @@
   },
   "workspace": {
     "dependencies": [
+      "npm:flow-launcher-helper@^2.2.0",
       "npm:fzf@~0.5.2"
     ]
   }
