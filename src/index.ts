@@ -85,7 +85,38 @@ flow.on("query", async (params) => {
   });
 });
 
-flow.on("update", (params) => {
+const updateCache = async (projects: string[], settings: Settings) => {
+  await Promise.all(
+    projects.map(async (project) => {
+      const titlesCacheClient = getTitlesCacheClient(project);
+      const titlesCache = (await titlesCacheClient.read()) || [];
+      const titles = await api.getTitles(project, settings.sid);
+      const titlesCacheMap = new Map(
+        titlesCache.map((title) => [title.id, title.updated])
+      );
+      titles
+        .filter((title) => {
+          const updated = titlesCacheMap.get(title.id);
+          return !updated || updated < title.updated;
+        })
+        .forEach(async (title) => {
+          const page = await api.getPage(project, title.title, settings.sid);
+          const client = getPageCacheClient(project, title.id);
+          client.write(page);
+        });
+      titlesCacheMap.keys().forEach((id) => {
+        if (!titles.some((title) => title.id === id)) {
+          const client = getPageCacheClient(project, id);
+          client.delete();
+        }
+      });
+
+      await titlesCacheClient.write(titles);
+    })
+  );
+};
+
+flow.on("update", async (params) => {
   const settings = params[0] as Settings;
   const projects = settings.projects.trim().split(",");
 
@@ -95,41 +126,26 @@ flow.on("update", (params) => {
   // if (now > lastUpdate + Number(settings.timeout)) {
   // await timeoutCache.write({ lastUpdate });
 
-  projects.forEach(async (project) => {
-    const titlesCacheClient = getTitlesCacheClient(project);
-    const titlesCache = (await titlesCacheClient.read()) || [];
-    const titles = await api.getTitles(project, settings.sid);
-    const titlesCacheMap = new Map(
-      titlesCache.map((title) => [title.id, title.updated])
-    );
-    titles
-      .filter((title) => {
-        const updated = titlesCacheMap.get(title.id);
-        return !updated || updated < title.updated;
-      })
-      .forEach(async (title) => {
-        const page = await api.getPage(project, title.title, settings.sid);
-        const client = getPageCacheClient(project, title.id);
-        client.write(page);
-      });
-    titlesCacheMap.keys().forEach((id) => {
-      if (!titles.some((title) => title.id === id)) {
-        const client = getPageCacheClient(project, id);
-        client.delete();
-      }
-    });
-
-    titlesCacheClient.write(titles);
-  });
+  await updateCache(projects, settings);
   // }
 });
 
 flow.on("open", async (params) => {
-  await openUrl(params[0].toString());
+  const settings = params[1] as Settings;
+  const projects = settings.projects.trim().split(",");
+  Promise.all([
+    await openUrl(params[0].toString()),
+    await updateCache(projects, settings),
+  ]);
 });
 
 flow.on("copy", async (params) => {
-  await clippy.writeText(params[0].toString());
+  const settings = params[1] as Settings;
+  const projects = settings.projects.trim().split(",");
+  Promise.all([
+    await clippy.writeText(params[0].toString()),
+    await updateCache(projects, settings),
+  ]);
 });
 
 flow.on("file", async (params) => {
@@ -139,7 +155,12 @@ flow.on("file", async (params) => {
     params[2].toString(),
     params[3].toString()
   );
-  await clippy.writeText(file);
+  const settings = params[4] as Settings;
+  const projects = settings.projects.trim().split(",");
+  Promise.all([
+    await clippy.writeText(file),
+    await updateCache(projects, settings),
+  ]);
 });
 
 flow.run();

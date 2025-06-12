@@ -85,6 +85,7 @@ export function makeResult(
       method: "open",
       params: [
         `https://scrapbox.io/${project}/${encodeURIComponent(data.title)}`,
+        settings,
       ],
       iconPath: "assets/sticky-note.png",
     } as FlowResponse,
@@ -96,7 +97,7 @@ export function makeResult(
               title: x,
               subtitle: `${project}/${data.title}`,
               method: "open",
-              params: [helpfeel.url],
+              params: [helpfeel.url, settings],
               iconPath: "assets/globe.png",
             } as FlowResponse;
           case "copy":
@@ -104,7 +105,7 @@ export function makeResult(
               title: x,
               subtitle: helpfeel.text,
               method: "copy",
-              params: [helpfeel.text],
+              params: [helpfeel.text, settings],
               iconPath: "assets/clipboard-minus.png",
             } as FlowResponse;
           case "file":
@@ -112,7 +113,7 @@ export function makeResult(
               title: x,
               subtitle: `${project}/${data.title}/${helpfeel.file}`,
               method: "file",
-              params: [project, data.title, helpfeel.file, settings.sid],
+              params: [project, data.title, helpfeel.file, settings],
               iconPath: "assets/file-code.png",
             } as FlowResponse;
           case "scrapbox":
@@ -120,7 +121,7 @@ export function makeResult(
               title: x,
               subtitle: `${project}/${data.title}`,
               method: "open",
-              params: [helpfeel.url],
+              params: [helpfeel.url, settings],
               iconPath: "assets/circle-help.png",
             } as FlowResponse;
         }
