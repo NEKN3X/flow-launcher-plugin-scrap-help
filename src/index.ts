@@ -69,6 +69,7 @@ flow.on("query", async (params) => {
                 ? encodeURIComponent(params[0].toString().split(" ")[1])
                 : encodeURIComponent(params[0].toString())
             }`,
+            flow.settings,
           ],
           score: -100,
         },
@@ -78,7 +79,7 @@ flow.on("query", async (params) => {
           iconPath: "assets/cosense.png",
           method: "update",
           params: [flow.settings],
-          score: -100,
+          score: -1000,
         },
       ])
     );
