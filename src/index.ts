@@ -1,18 +1,14 @@
 import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
 import { Flow, JSONRPCResponse } from "npm:flow-launcher-helper";
 import { api } from "./api.ts";
-import {
-  getPageCacheClient,
-  getTempCacheClient,
-  getTitlesCacheClient,
-} from "./cache.ts";
+import { getPageCacheClient, getTitlesCacheClient } from "./cache.ts";
 import { openUrl } from "./open.ts";
 import { makeResult } from "./result.ts";
 import { search } from "./search.ts";
 import { Settings } from "./types.ts";
 
 // The events are the custom events that you define in the flow.on() method.
-const events = ["open", "copy", "file"] as const;
+const events = ["update", "open", "copy", "file"] as const;
 type Events = (typeof events)[number];
 
 export type FlowResponse = JSONRPCResponse<Events>;
@@ -20,44 +16,6 @@ const flow = new Flow<Events, Settings>("assets/image.png");
 
 flow.on("query", async (params) => {
   const projects = flow.settings.projects.trim().split(",");
-
-  const timeoutCache = getTempCacheClient();
-  const lastUpdate = (await timeoutCache.read())?.lastUpdate || 0;
-  const now = Date.now();
-  if (now > lastUpdate + Number(flow.settings.timeout)) {
-    await timeoutCache.write({ lastUpdate });
-
-    projects.forEach(async (project) => {
-      const titlesCacheClient = getTitlesCacheClient(project);
-      const titlesCache = (await titlesCacheClient.read()) || [];
-      const titles = await api.getTitles(project, flow.settings.sid);
-      const titlesCacheMap = new Map(
-        titlesCache.map((title) => [title.id, title.updated])
-      );
-      titles
-        .filter((title) => {
-          const updated = titlesCacheMap.get(title.id);
-          return !updated || updated < title.updated;
-        })
-        .forEach(async (title) => {
-          const page = await api.getPage(
-            project,
-            title.title,
-            flow.settings.sid
-          );
-          const client = getPageCacheClient(project, title.id);
-          client.write(page);
-        });
-      titlesCacheMap.keys().forEach((id) => {
-        if (!titles.some((title) => title.id === id)) {
-          const client = getPageCacheClient(project, id);
-          client.delete();
-        }
-      });
-
-      titlesCacheClient.write(titles);
-    });
-  }
 
   const glossaryProject = flow.settings.glossary;
   const pages = (await getTitlesCacheClient(glossaryProject).read()).find(
@@ -88,8 +46,81 @@ flow.on("query", async (params) => {
       );
     })
   ).then((results) => {
-    flow.showResult(...search(results.flat().flat(), params[0].toString()));
+    flow.showResult(
+      ...search(
+        results
+          .flat()
+          .flat()
+          .concat([
+            {
+              title: "UPDATE",
+              subtitle: "Click to update cache",
+              iconPath: "assets/cosense.png",
+              method: "update",
+              params: [flow.settings],
+            },
+          ] as FlowResponse[]),
+        params[0].toString()
+      ).concat([
+        {
+          title: "NEW",
+          subtitle: "Click to create a new page",
+          iconPath: "assets/cosense.png",
+          method: "open",
+          params: [
+            `https://scrapbox.io/${
+              params[0].toString().split(" ").length > 1
+                ? params[0].toString().split(" ")[0]
+                : flow.settings.projects.trim().split(",")[0]
+            }/${
+              params[0].toString().split(" ").length > 1
+                ? encodeURIComponent(params[0].toString().split(" ")[1])
+                : encodeURIComponent(params[0].toString())
+            }`,
+          ],
+        },
+      ])
+    );
   });
+});
+
+flow.on("update", (params) => {
+  const settings = params[0] as Settings;
+  const projects = settings.projects.trim().split(",");
+
+  // const timeoutCache = getTempCacheClient();
+  // const lastUpdate = (await timeoutCache.read())?.lastUpdate || 0;
+  // const now = Date.now();
+  // if (now > lastUpdate + Number(settings.timeout)) {
+  // await timeoutCache.write({ lastUpdate });
+
+  projects.forEach(async (project) => {
+    const titlesCacheClient = getTitlesCacheClient(project);
+    const titlesCache = (await titlesCacheClient.read()) || [];
+    const titles = await api.getTitles(project, settings.sid);
+    const titlesCacheMap = new Map(
+      titlesCache.map((title) => [title.id, title.updated])
+    );
+    titles
+      .filter((title) => {
+        const updated = titlesCacheMap.get(title.id);
+        return !updated || updated < title.updated;
+      })
+      .forEach(async (title) => {
+        const page = await api.getPage(project, title.title, settings.sid);
+        const client = getPageCacheClient(project, title.id);
+        client.write(page);
+      });
+    titlesCacheMap.keys().forEach((id) => {
+      if (!titles.some((title) => title.id === id)) {
+        const client = getPageCacheClient(project, id);
+        client.delete();
+      }
+    });
+
+    titlesCacheClient.write(titles);
+  });
+  // }
 });
 
 flow.on("open", async (params) => {
