@@ -1,7 +1,11 @@
 import * as clippy from "https://deno.land/x/clippy@v1.0.0/mod.ts";
 import { Flow, JSONRPCResponse } from "npm:flow-launcher-helper";
 import { api } from "./api.ts";
-import { getPageCacheClient, getTitlesCacheClient } from "./cache.ts";
+import {
+  getPageCacheClient,
+  getTempCacheClient,
+  getTitlesCacheClient,
+} from "./cache.ts";
 import { openUrl } from "./open.ts";
 import { makeResult } from "./result.ts";
 import { search } from "./search.ts";
@@ -17,7 +21,7 @@ const flow = new Flow<Events, Settings>("assets/image.png");
 flow.on("query", async (params) => {
   const projects = flow.settings.projects.trim().split(",");
 
-  updateCache(projects, flow.settings);
+  updateCacheWithTimeout(projects, flow.settings);
 
   const glossaryProject = flow.settings.glossary;
   const pages = (await getTitlesCacheClient(glossaryProject).read()).find(
@@ -75,14 +79,6 @@ flow.on("query", async (params) => {
           ],
           score: -100,
         },
-        {
-          title: "UPDATE",
-          subtitle: "Click to update cache",
-          iconPath: "assets/cosense.png",
-          method: "update",
-          params: [flow.settings],
-          score: -1000,
-        },
       ])
     );
   });
@@ -119,19 +115,18 @@ const updateCache = async (projects: string[], settings: Settings) => {
   );
 };
 
-flow.on("update", async (params) => {
-  const settings = params[0] as Settings;
-  const projects = settings.projects.trim().split(",");
-
-  // const timeoutCache = getTempCacheClient();
-  // const lastUpdate = (await timeoutCache.read())?.lastUpdate || 0;
-  // const now = Date.now();
-  // if (now > lastUpdate + Number(settings.timeout)) {
-  // await timeoutCache.write({ lastUpdate });
-
-  // await updateCache(projects, settings);
-  // }
-});
+const updateCacheWithTimeout = async (
+  projects: string[],
+  settings: Settings
+) => {
+  const timeoutCache = getTempCacheClient();
+  const lastUpdate = (await timeoutCache.read())?.lastUpdate || 0;
+  const now = Date.now();
+  if (now > lastUpdate + Number(settings.timeout)) {
+    await timeoutCache.write({ lastUpdate });
+    await updateCache(projects, settings);
+  }
+};
 
 flow.on("open", async (params) => {
   const settings = params[1] as Settings;
