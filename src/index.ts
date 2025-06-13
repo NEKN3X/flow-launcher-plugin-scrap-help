@@ -17,6 +17,8 @@ const flow = new Flow<Events, Settings>("assets/image.png");
 flow.on("query", async (params) => {
   const projects = flow.settings.projects.trim().split(",");
 
+  updateCache(projects, flow.settings);
+
   const glossaryProject = flow.settings.glossary;
   const pages = (await getTitlesCacheClient(glossaryProject).read()).find(
     (x) => x.title === "Glossary"
@@ -127,7 +129,7 @@ flow.on("update", async (params) => {
   // if (now > lastUpdate + Number(settings.timeout)) {
   // await timeoutCache.write({ lastUpdate });
 
-  await updateCache(projects, settings);
+  // await updateCache(projects, settings);
   // }
 });
 
@@ -136,7 +138,7 @@ flow.on("open", async (params) => {
   const projects = settings.projects.trim().split(",");
   Promise.all([
     await openUrl(params[0].toString()),
-    await updateCache(projects, settings),
+    // await updateCache(projects, settings),
   ]);
 });
 
@@ -145,7 +147,7 @@ flow.on("copy", async (params) => {
   const projects = settings.projects.trim().split(",");
   Promise.all([
     await clippy.writeText(params[0].toString()),
-    await updateCache(projects, settings),
+    // await updateCache(projects, settings),
   ]);
 });
 
@@ -160,7 +162,7 @@ flow.on("file", async (params) => {
   const projects = settings.projects.trim().split(",");
   Promise.all([
     await clippy.writeText(file),
-    await updateCache(projects, settings),
+    // await updateCache(projects, settings),
   ]);
 });
 
